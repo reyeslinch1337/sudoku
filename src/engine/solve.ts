@@ -138,9 +138,13 @@ export function solve(digits: ArrayLike<number>): Uint8Array | null {
   return result;
 }
 
-/** A uniformly shuffled complete valid grid. */
-export function randomSolution(rng: Rng): Uint8Array {
-  const s = initState(new Uint8Array(81))!;
+/** A random solution of the given digits (a random complete grid for an empty one), or null. */
+export function randomSolution(
+  rng: Rng,
+  digits: ArrayLike<number> = new Uint8Array(81),
+): Uint8Array | null {
+  const s = initState(digits);
+  if (!s) return null;
   let result: Uint8Array | null = null;
   search(
     s,
@@ -150,5 +154,5 @@ export function randomSolution(rng: Rng): Uint8Array {
     },
     rng,
   );
-  return result!;
+  return result;
 }
