@@ -16,7 +16,8 @@
     "format:check": "prettier --check .",
     "e2e": "playwright test",
     "generate": "tsx scripts/generate.ts",
-    "verify-bank": "tsx scripts/verify-bank.ts"
+    "verify-bank": "tsx scripts/verify-bank.ts",
+    "icons": "cd public && pwa-assets-generator --preset minimal-2023 icon.svg"
   },
   "dependencies": {
     "@preact/signals": "^2.11.3",

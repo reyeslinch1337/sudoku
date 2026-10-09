@@ -648,3 +648,18 @@ textarea {
     min-height: 44px;
   }
 }
+
+.banner {
+  width: min(480px, 100%);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.35;
+}

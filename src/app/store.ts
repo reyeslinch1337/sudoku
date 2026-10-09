@@ -69,6 +69,8 @@ export function createStore(deps: StoreDeps) {
   /** Cells flagged by the last check; cleared by the next board change. */
   const checked = signal<Set<number> | null>(null);
   const toast = signal<string | null>(null);
+  /** Set by the service worker registration when a new version is waiting. */
+  const update = signal<(() => void) | null>(null);
   let hintToken = 0;
 
   const t = computed(() => DICTS[settings.value.lang]);
@@ -235,6 +237,7 @@ export function createStore(deps: StoreDeps) {
     hint,
     checked,
     toast,
+    update,
     t,
     dispatch,
     inputDigit,
