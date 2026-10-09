@@ -10,13 +10,18 @@
 
 ## Текущее состояние
 
-Проект на стадии проектирования, кода ещё нет. Дизайн утверждён по секциям и записан в спек
-[docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md](docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md).
-Спек утверждён. План реализации: [docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md](docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md), ожидает утверждения. История решений:
-[docs/brainstorm-handoff.md](docs/brainstorm-handoff.md).
+Игра реализована по спеку [docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md](docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md)
+и плану [docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md](docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md).
+Сайт: https://reyeslinch1337.github.io/sudoku/ (публикуется GitHub Actions при каждом push в `main`).
+История решений: [docs/brainstorm-handoff.md](docs/brainstorm-handoff.md).
 
-Порядок работы: утвердить дизайн по секциям, затем письменный спек, затем план реализации, затем код.
-Не начинать писать код продукта, пока пользователь не утвердил спек и план.
+## Как обновить банк задач
+
+1. `npm run generate -- --seed N` (новый seed даёт новый банк; состояние в `.generate-state/`, прерванный запуск продолжается).
+2. `npm run verify-bank`.
+3. Закоммитить `src/data/puzzles.json`. Статистика игроков привязана к строке задачи, поэтому смена банка её не ломает.
+
+Иконки: исходник `public/icon.svg`, PNG пересобираются командой `npm run icons`.
 
 ## Порядок исполнения плана
 
@@ -30,7 +35,7 @@
 - `npm run typecheck` - проверка типов
 - `npm run format` / `npm run format:check` - Prettier
 - `npm run build` - production-сборка в `dist/`
-- `npm run e2e` - Playwright smoke-тесты
+- `npm run e2e` - Playwright smoke-тесты (локально с предустановленным Chromium: `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run e2e`)
 - `npm run generate` - генерация банка задач
 - `npm run verify-bank` - полная проверка банка
 
