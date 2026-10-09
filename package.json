@@ -1,0 +1,39 @@
+{
+  "name": "extreme-sudoku",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "e2e": "playwright test",
+    "generate": "tsx scripts/generate.ts",
+    "verify-bank": "tsx scripts/verify-bank.ts"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "preact": "^11.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@preact/preset-vite": "^2.10.6",
+    "@testing-library/preact": "^3.2.4",
+    "@types/node": "^26.6.4",
+    "@vite-pwa/assets-generator": "^2.0.0",
+    "happy-dom": "^20.14.6",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3"
+  }
+}

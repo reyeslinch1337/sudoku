@@ -3,3 +3,6 @@ dist/
 coverage/
 .DS_Store
 *.log
+.generate-state/
+playwright-report/
+test-results/
