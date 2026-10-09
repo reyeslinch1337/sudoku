@@ -1,7 +1,16 @@
 import { render } from 'preact';
+import bank from '../data/puzzles.json';
+import type { BankEntry } from '../engine/generator';
+import { App } from './App';
+import { createStore } from './store';
+import { workerHints } from './hintClient';
+import './styles.css';
 
-function App() {
-  return <h1>Extreme Sudoku</h1>;
-}
+const store = createStore({
+  bank: bank as BankEntry[],
+  storage: window.localStorage,
+  language: navigator.language,
+  hints: workerHints(),
+});
 
-render(<App />, document.getElementById('app')!);
+render(<App store={store} />, document.getElementById('app')!);
