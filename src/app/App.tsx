@@ -6,6 +6,7 @@ import { NumPad, Toolbar } from './components/Controls';
 import { Header } from './components/Header';
 import { HintPanel } from './components/HintPanel';
 import { ConfirmNew, Menu, Pause, Settings, Stats, Win } from './components/Overlays';
+import { InstallTip, UpdateBanner } from './components/Banners';
 
 const AUTOSAVE_MS = 15_000;
 
@@ -64,7 +65,7 @@ function useKeyboard(store: Store) {
   }, []);
 }
 
-export function App({ store }: { store: Store }) {
+export function App({ store, offerInstall = false }: { store: Store; offerInstall?: boolean }) {
   useClock(store);
   useKeyboard(store);
   const overlay = store.overlay.value;
@@ -74,6 +75,8 @@ export function App({ store }: { store: Store }) {
 
   return (
     <div class="app">
+      <UpdateBanner store={store} />
+      <InstallTip store={store} offer={offerInstall} />
       <Header store={store} />
       <main class="main">
         <Board store={store} />
