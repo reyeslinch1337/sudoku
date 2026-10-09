@@ -65,8 +65,8 @@ describe('solve', () => {
 
   it('produces varied random solutions', () => {
     const rng = createRng(42);
-    const a = randomSolution(rng);
-    const b = randomSolution(rng);
+    const a = randomSolution(rng)!;
+    const b = randomSolution(rng)!;
     expect(isValidSolution(a)).toBe(true);
     expect(isValidSolution(b)).toBe(true);
     expect(formatDigits(a)).not.toBe(formatDigits(b));
@@ -104,7 +104,7 @@ describe('transform', () => {
     const rng = createRng(3);
     const seen = new Set<string>();
     for (let k = 0; k < 200; k++) {
-      const s = randomSolution(rng);
+      const s = randomSolution(rng)!;
       for (let j = 0; j < 30; j++) s[randInt(rng, 81)] = 0;
       seen.add(fingerprint(s));
     }
@@ -116,7 +116,7 @@ describe('performance', () => {
   it('finds 1000 random solutions quickly', () => {
     const rng = createRng(1);
     const t0 = performance.now();
-    for (let k = 0; k < 1000; k++) randomSolution(rng);
+    for (let k = 0; k < 1000; k++) randomSolution(rng)!;
     expect(performance.now() - t0).toBeLessThan(3000);
   });
 });

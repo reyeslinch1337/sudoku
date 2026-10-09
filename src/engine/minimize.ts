@@ -18,5 +18,5 @@ export function minimize(rng: Rng, digits: ArrayLike<number>): Uint8Array {
 
 /** A random minimal puzzle with a unique solution. */
 export function randomPuzzle(rng: Rng): Uint8Array {
-  return minimize(rng, randomSolution(rng));
+  return minimize(rng, randomSolution(rng)!);
 }
