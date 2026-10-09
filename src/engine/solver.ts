@@ -21,6 +21,9 @@ import {
   uniqueRectangle2,
   uniqueRectangle4,
 } from './techniques/uniqueness';
+import { chains } from './techniques/chains';
+import { als } from './techniques/als';
+import { forcingChains } from './techniques/forcing';
 
 export interface Technique {
   /** Lowest rating the technique can produce; used to order and to cap the search. */
@@ -52,14 +55,27 @@ export const TECHNIQUES: Technique[] = [
   { rating: RATING.jellyfish, find: jellyfish },
   { rating: RATING.hiddenQuad, find: hiddenQuad },
   { rating: RATING.bug1, find: bug1 },
+  { rating: RATING.xChain, find: chainsOrAls },
+  { rating: RATING.forcingChain, find: forcingChains },
 ];
+
+/** Chains and ALS overlap in rating, so both are searched and the easier step wins. */
+function chainsOrAls(g: Grid): Step | null {
+  const c = chains(g);
+  if (c && c.rating <= RATING.alsXz) return c;
+  const a = als(g);
+  if (!c) return a;
+  if (!a) return c;
+  return a.rating < c.rating ? a : c;
+}
 
 /** The simplest available step, considering only techniques rated at most maxRating. */
 export function nextStep(g: Grid, maxRating = Infinity): Step | null {
   for (const t of TECHNIQUES) {
     if (t.rating > maxRating) break;
     const s = t.find(g);
-    if (s) return s;
+    // Finders return their lowest rated step, so a step above the cap means none qualifies.
+    if (s) return s.rating <= maxRating ? s : null;
   }
   return null;
 }

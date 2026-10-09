@@ -24,7 +24,30 @@ export const RATING = {
   jellyfish: 5.2,
   hiddenQuad: 5.4,
   bug1: 5.6,
+  skyscraper: 6.6,
+  twoStringKite: 6.6,
+  xChain: 6.6,
+  xyChain: 6.6,
+  aic: 7.0,
+  chainMax: 7.5,
+  alsXz: 7.0,
+  alsXyWing: 7.4,
+  alsMax: 7.8,
+  forcingChain: 8.0,
+  forcingMax: 9.5,
 } as const;
+
+const round1 = (x: number) => Math.round(x * 10) / 10;
+
+/** Base rating plus 0.1 for every 2 links beyond 4, capped at max. */
+export function chainRating(base: number, links: number, max: number): number {
+  return Math.min(max, round1(base + 0.1 * Math.ceil(Math.max(0, links - 4) / 2)));
+}
+
+/** Base rating plus 0.1 per extra cell beyond minCells, capped at max. */
+export function sizeRating(base: number, cells: number, minCells: number, max: number): number {
+  return Math.min(max, round1(base + 0.1 * Math.max(0, cells - minCells)));
+}
 
 /** Rating of a puzzle for which no logical solution was found. */
 export const UNSOLVED_RATING = 99;
