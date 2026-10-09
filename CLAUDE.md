@@ -12,7 +12,7 @@
 
 Проект на стадии проектирования, кода ещё нет. Дизайн утверждён по секциям и записан в спек
 [docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md](docs/superpowers/specs/2026-10-09-extreme-sudoku-design.md).
-Спек ожидает утверждения пользователем, затем пишется план реализации. История решений:
+Спек утверждён. План реализации: [docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md](docs/superpowers/plans/2026-10-09-extreme-sudoku-plan.md), ожидает утверждения. История решений:
 [docs/brainstorm-handoff.md](docs/brainstorm-handoff.md).
 
 Порядок работы: утвердить дизайн по секциям, затем письменный спек, затем план реализации, затем код.
