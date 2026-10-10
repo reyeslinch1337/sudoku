@@ -7,7 +7,7 @@ import { solveLogically } from './solver';
 import { formatDigits, parseDigits } from './grid';
 import { fingerprint } from './transform';
 
-export const MIN_RATING = 7.0;
+export const MIN_RATING = 9.0;
 /** Puzzles solvable with techniques up to this rating are discarded before full rating. */
 export const FAST_FILTER_RATING = 6.6;
 export const LINEAGE_CAP = 20;
@@ -19,20 +19,22 @@ export interface Bucket {
   quota: number;
 }
 
-export const BUCKETS: Bucket[] = [
-  { name: '7.x', min: 7.0, max: 7.9, quota: 250 },
-  { name: '8.x', min: 8.0, max: 8.9, quota: 175 },
-  { name: '9.x', min: 9.0, max: 9.5, quota: 75 },
-];
+/** Most puzzles per difficulty level in the bank. */
+export const LEVEL_QUOTA = 167;
 
-export const bucketOf = (r: number): Bucket | undefined =>
-  BUCKETS.find((b) => r >= b.min - 1e-9 && r <= b.max + 1e-9);
+/** Generated puzzles form level 9; levels 10 and 11+ come from collections. */
+export const BUCKETS: Bucket[] = [{ name: '9', min: 9.0, max: 9.5, quota: LEVEL_QUOTA }];
+
+/** 9: our generated puzzles; 10: hardest collection below SE 11; 11: SE 11 and above. */
+export type Level = 9 | 10 | 11;
+export const LEVELS: Level[] = [9, 10, 11];
 
 export interface BankEntry {
   /** 81 characters, '.' for empty cells. */
   p: string;
-  /** Rating with one decimal. */
-  r: number;
+  l: Level;
+  /** Rating with one decimal; only level 9 has one. */
+  r?: number;
 }
 
 /** Rating of a puzzle, or null when it is too easy or not solvable by the solver. */
@@ -141,7 +143,7 @@ export function selectBank(
           const c = q[pos[k]++];
           if ((perLineage.get(c.lineage) ?? 0) >= lineageCap) continue;
           perLineage.set(c.lineage, (perLineage.get(c.lineage) ?? 0) + 1);
-          out.push({ p: c.p, r: c.r });
+          out.push({ p: c.p, l: 9, r: c.r });
           taken++;
           progressed = true;
           break;
@@ -158,25 +160,34 @@ export interface BankProblem {
   problem: string;
 }
 
-/** Checks bank entries; returns the problems found (empty when the bank is valid). */
+/**
+ * Checks bank entries; returns the problems found (empty when the bank is valid). Level 9 is
+ * checked in full; levels 10 and 11+ must have one solution and be beyond our solver.
+ */
 export function verifyEntries(entries: BankEntry[], buckets: Bucket[] = BUCKETS): BankProblem[] {
   const problems: BankProblem[] = [];
   const seen = new Map<string, number>();
   entries.forEach((e, index) => {
     const report = (problem: string) => problems.push({ index, problem });
     if (!/^[1-9.]{81}$/.test(e.p)) return report('bad format');
+    if (!LEVELS.includes(e.l)) return report(`unknown level ${e.l}`);
     const d = parseDigits(e.p);
     if (countSolutions(d, 2) !== 1) return report('solution is not unique');
-    const res = solveLogically(d);
-    if (!res.solved) return report('solver does not solve it');
-    if (Math.abs(res.rating - e.r) > 1e-9)
-      report(`rating ${res.rating} differs from stored ${e.r}`);
-    if (!buckets.some((b) => e.r >= b.min - 1e-9 && e.r <= b.max + 1e-9))
-      report(`rating ${e.r} outside every bucket`);
     const f = fingerprint(d);
     const prev = seen.get(f);
     if (prev !== undefined) report(`duplicate of entry ${prev}`);
     else seen.set(f, index);
+    const res = solveLogically(d);
+    if (e.l !== 9) {
+      if (e.r !== undefined) report('only level 9 has a rating');
+      if (res.solved) report('solver solves it, so it belongs below this level');
+      return;
+    }
+    if (!res.solved) return report('solver does not solve it');
+    if (e.r === undefined || Math.abs(res.rating - e.r) > 1e-9)
+      report(`rating ${res.rating} differs from stored ${e.r}`);
+    if (e.r !== undefined && !buckets.some((b) => e.r! >= b.min - 1e-9 && e.r! <= b.max + 1e-9))
+      report(`rating ${e.r} outside every bucket`);
     for (let i = 0; i < 81; i++) {
       if (!d[i]) continue;
       const v = d[i];
@@ -189,12 +200,13 @@ export function verifyEntries(entries: BankEntry[], buckets: Bucket[] = BUCKETS)
   return problems;
 }
 
-/** Problems with the bank as a whole: size and quotas. */
-export function verifyQuotas(entries: BankEntry[], buckets: Bucket[] = BUCKETS): string[] {
+/** Problems with the bank as a whole: every level present and within its quota. */
+export function verifyQuotas(entries: BankEntry[], quota = LEVEL_QUOTA): string[] {
   const out: string[] = [];
-  for (const b of buckets) {
-    const n = entries.filter((e) => e.r >= b.min - 1e-9 && e.r <= b.max + 1e-9).length;
-    if (n !== b.quota) out.push(`bucket ${b.name}: ${n} puzzles, expected ${b.quota}`);
+  for (const l of LEVELS) {
+    const n = entries.filter((e) => e.l === l).length;
+    if (n === 0) out.push(`level ${l}: no puzzles`);
+    if (n > quota) out.push(`level ${l}: ${n} puzzles, at most ${quota}`);
   }
   return out;
 }

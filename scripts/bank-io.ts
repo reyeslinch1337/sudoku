@@ -1,9 +1,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { BankEntry } from '../src/engine/generator';
 
-/** One entry per line, sorted by rating, so diffs stay readable. */
+/** One entry per line, sorted by level and rating, so diffs stay readable. */
 export function writeBank(file: string, entries: BankEntry[]): void {
-  const sorted = [...entries].sort((a, b) => a.r - b.r || a.p.localeCompare(b.p));
+  const sorted = [...entries].sort(
+    (a, b) => a.l - b.l || (a.r ?? 0) - (b.r ?? 0) || a.p.localeCompare(b.p),
+  );
   writeFileSync(file, '[\n' + sorted.map((e) => JSON.stringify(e)).join(',\n') + '\n]\n');
 }
 

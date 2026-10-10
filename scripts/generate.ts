@@ -91,7 +91,7 @@ function pickParent(
 function parentFloor(s: State): number {
   const bank = selectBank(s.candidates);
   for (const b of BUCKETS) {
-    const n = bank.filter((e) => e.r >= b.min - 1e-9 && e.r <= b.max + 1e-9).length;
+    const n = bank.filter((e) => (e.r ?? 0) >= b.min - 1e-9 && (e.r ?? 0) <= b.max + 1e-9).length;
     if (n < b.quota) return b.min - 0.5;
   }
   return 0;
@@ -146,7 +146,7 @@ function runJobs(workers: Worker[], jobs: Job[]): Promise<JobResult[]> {
 function progress(s: State, started: number): string {
   const bank = selectBank(s.candidates);
   const parts = BUCKETS.map((b) => {
-    const n = bank.filter((e) => e.r >= b.min - 1e-9 && e.r <= b.max + 1e-9).length;
+    const n = bank.filter((e) => (e.r ?? 0) >= b.min - 1e-9 && (e.r ?? 0) <= b.max + 1e-9).length;
     return `${b.name} ${n}/${b.quota}`;
   });
   const mins = ((Date.now() - started) / 60000).toFixed(1);

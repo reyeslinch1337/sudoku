@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type BankEntry,
   type Bucket,
   type Candidate,
   mutate,
@@ -47,7 +48,8 @@ describe('generator', () => {
     expect(a).toEqual(b);
     expect(a.length).toBeGreaterThan(0);
     for (const f of a) expect(f.r).toBeGreaterThanOrEqual(3.0);
-    expect(verifyEntries(a, [{ name: 'any', min: 0, max: 10, quota: 0 }])).toEqual([]);
+    const entries = a.map((f) => ({ p: f.p, l: 9 as const, r: f.r }));
+    expect(verifyEntries(entries, [{ name: 'any', min: 0, max: 10, quota: 0 }])).toEqual([]);
   });
 
   it('selects by quota, spreads rating levels and caps lineages', () => {
@@ -66,26 +68,29 @@ describe('generator', () => {
   });
 
   it('verification catches duplicates and wrong ratings', () => {
-    const p = searchFresh(createRng(3), 30, 3.0)[0];
+    const found = searchFresh(createRng(3), 30, 3.0)[0];
+    const p = { p: found.p, l: 9 as const, r: found.r };
     const twin = formatDigits(applyTransform(randomTransform(createRng(1)), parseDigits(p.p)));
     expect(fingerprint(parseDigits(twin))).toBe(fingerprint(parseDigits(p.p)));
     const any: Bucket[] = [{ name: 'any', min: 0, max: 20, quota: 0 }];
-    const problems = verifyEntries([p, { p: twin, r: p.r }, { p: p.p, r: p.r + 1 }], any);
-    expect(problems.map((x) => x.index)).toEqual([1, 2, 2]);
-    expect(verifyQuotas([p])).toHaveLength(3);
+    const problems = verifyEntries(
+      [p, { ...p, p: twin }, { ...p, r: p.r + 1 }, { p: p.p, l: 11 }],
+      any,
+    );
+    expect(problems.map((x) => x.index)).toEqual([1, 2, 2, 3, 3]);
+    expect(verifyQuotas([p])).toEqual(['level 10: no puzzles', 'level 11: no puzzles']);
+    expect(verifyQuotas([p, p], 1)).toContain('level 9: 2 puzzles, at most 1');
   });
 });
 
 // The committed bank, when present: quotas in full, a sample of entries in depth.
-const bankModules = import.meta.glob<{ default: { p: string; r: number }[] }>(
-  '../../src/data/puzzles.json',
-  { eager: true },
-);
+const bankModules = import.meta.glob<{ default: BankEntry[] }>('../../src/data/puzzles.json', {
+  eager: true,
+});
 const bank = Object.values(bankModules)[0]?.default;
 
 describe.runIf(bank)('puzzle bank', () => {
-  it('fills every quota', () => {
-    expect(bank!).toHaveLength(500);
+  it('has every level within its quota', () => {
     expect(verifyQuotas(bank!)).toEqual([]);
   });
 
@@ -94,7 +99,7 @@ describe.runIf(bank)('puzzle bank', () => {
     expect(fps.size).toBe(bank!.length);
   });
 
-  it('sample entries are unique, minimal, solvable and correctly rated', () => {
+  it('sample entries pass the checks of their level', () => {
     const sample = bank!.filter((_, i) => i % 10 === 0);
     expect(verifyEntries(sample)).toEqual([]);
   }, 120_000);

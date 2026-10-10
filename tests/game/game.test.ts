@@ -206,8 +206,8 @@ describe('timer', () => {
 
 describe('picking and stats', () => {
   const bank = [
-    { p: 'a', r: 7.1 },
-    { p: 'b', r: 8.4 },
+    { p: 'a', l: 9 as const, r: 7.1 },
+    { p: 'b', l: 9 as const, r: 8.4 },
   ];
 
   it('picks unsolved puzzles first, then any', () => {
