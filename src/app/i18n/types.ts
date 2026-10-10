@@ -33,6 +33,10 @@ export interface Dict {
   thinking: string;
   hintError: string;
   hintNone: string;
+  chooseLevel: string;
+  levelWithHints: string;
+  levelNoHints: string;
+  sources: string;
   wrongDigit: (cell: string, d: number) => string;
   lostCandidate: (cell: string) => string;
   fixWrongDigit: (cell: string, d: number) => string;

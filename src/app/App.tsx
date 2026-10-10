@@ -5,7 +5,7 @@ import { Board } from './components/Board';
 import { NumPad, Toolbar } from './components/Controls';
 import { Header } from './components/Header';
 import { HintPanel } from './components/HintPanel';
-import { ConfirmNew, Menu, Pause, Settings, Stats, Win } from './components/Overlays';
+import { ConfirmNew, Menu, NewGame, Pause, Settings, Stats, Win } from './components/Overlays';
 import { InstallTip, UpdateBanner } from './components/Banners';
 
 const AUTOSAVE_MS = 15_000;
@@ -93,6 +93,7 @@ export function App({ store, offerInstall = false }: { store: Store; offerInstal
       {store.paused.value && <Pause store={store} />}
       {overlay === 'menu' && <Menu store={store} />}
       {overlay === 'confirmNew' && <ConfirmNew store={store} />}
+      {overlay === 'newGame' && <NewGame store={store} />}
       {overlay === 'stats' && <Stats store={store} />}
       {overlay === 'settings' && <Settings store={store} />}
       {overlay === 'win' && <Win store={store} />}

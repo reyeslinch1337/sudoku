@@ -9,7 +9,7 @@ const firstEditable = (page: Page) => page.locator('.cell:not(.given)').first();
 
 test('opens with a puzzle', async ({ page }) => {
   await open(page);
-  await expect(page.locator('.rating')).toHaveText(/^[789]\.\d$/);
+  await expect(page.locator('.rating')).toHaveText(/^9\.\d$/);
   expect(await page.locator('.cell.given').count()).toBeGreaterThan(16);
 });
 
@@ -56,4 +56,14 @@ test('works offline after the first visit', async ({ page, context }) => {
   await expect(page.locator('.cell')).toHaveCount(81);
   await page.locator('.tool').nth(6).click();
   await expect(page.locator('.hint-title')).not.toHaveText(/\.\.\.$/);
+});
+
+test('starts a new game on level 11+', async ({ page }) => {
+  await open(page);
+  await page.locator('.header .icon-btn').first().click();
+  await page.locator('.menu-list .btn.primary').click();
+  await page.locator('.level-btn').nth(2).click();
+  await expect(page.locator('.rating')).toHaveText('11+');
+  await page.reload();
+  await expect(page.locator('.rating')).toHaveText('11+');
 });

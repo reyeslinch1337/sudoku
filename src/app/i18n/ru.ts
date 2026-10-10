@@ -32,7 +32,12 @@ export const ru: Dict = {
   apply: 'Применить',
   thinking: 'Ищу шаг...',
   hintError: 'На поле есть ошибка',
-  hintNone: 'Следующий шаг не найден',
+  hintNone: 'Для этой задачи логическая подсказка недоступна',
+  chooseLevel: 'Выберите уровень',
+  levelWithHints: 'Подсказки работают',
+  levelNoHints: 'Без подсказок',
+  sources:
+    'Задачи уровней 10 и 11+: коллекция The hardest sudokus форума enjoysudoku.com, набор данных tdoku (BSD-2).',
   wrongDigit: (cell, d) => `В ${cell} стоит неверная цифра ${d}`,
   lostCandidate: (cell) => `В ${cell} среди пометок нет верной цифры`,
   fixWrongDigit: (cell, d) => `Убрать ${d} из ${cell}`,

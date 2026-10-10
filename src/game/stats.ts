@@ -1,6 +1,10 @@
+import type { Level } from '../engine/generator';
+
 export interface SolveRecord {
   id: string;
   rating: number;
+  /** Bank level; absent for solves from the earlier bank. */
+  level?: Level;
   timeMs: number;
   hints: number;
   checks: number;
@@ -31,16 +35,14 @@ export function summarize(records: SolveRecord[]): Summary {
   };
 }
 
-export const RANGES = [
-  { name: '7.x', min: 7, max: 8 },
-  { name: '8.x', min: 8, max: 9 },
-  { name: '9.x', min: 9, max: 10 },
-] as const;
+export const LEVEL_NAMES: Record<Level, string> = { 9: '9', 10: '10', 11: '11+' };
 
-export function summarizeByRange(records: SolveRecord[]) {
-  return RANGES.map((r) => ({
-    name: r.name,
-    summary: summarize(records.filter((x) => x.rating >= r.min && x.rating < r.max)),
+/** Summaries per bank level; records without a level count only in the overall summary. */
+export function summarizeByLevel(records: SolveRecord[]) {
+  return ([9, 10, 11] as Level[]).map((level) => ({
+    level,
+    name: LEVEL_NAMES[level],
+    summary: summarize(records.filter((x) => x.level === level)),
   }));
 }
 

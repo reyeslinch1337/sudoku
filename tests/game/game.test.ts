@@ -3,8 +3,8 @@ import { type GameState, HISTORY_LIMIT, newGame, reduce } from '../../src/game/s
 import { conflicts, digitCounts, effectiveGrid, findErrors } from '../../src/game/check';
 import { computeHint } from '../../src/game/hint';
 import { Timer, formatTime } from '../../src/game/timer';
-import { pickPuzzle } from '../../src/game/pick';
-import { summarize, summarizeByRange, type SolveRecord } from '../../src/game/stats';
+import { pickPuzzle, ratingLabel } from '../../src/game/pick';
+import { summarize, summarizeByLevel, type SolveRecord } from '../../src/game/stats';
 import { IDENTITY, randomTransform } from '../../src/engine/transform';
 import { createRng } from '../../src/engine/random';
 import { basicCandidates, bit } from '../../src/engine/grid';
@@ -206,37 +206,52 @@ describe('timer', () => {
 
 describe('picking and stats', () => {
   const bank = [
-    { p: 'a', l: 9 as const, r: 7.1 },
-    { p: 'b', l: 9 as const, r: 8.4 },
+    { p: 'a', l: 9 as const, r: 9.1 },
+    { p: 'b', l: 9 as const, r: 9.4 },
+    { p: 'c', l: 10 as const },
+    { p: 'd', l: 11 as const },
   ];
 
-  it('picks unsolved puzzles first, then any', () => {
+  it('picks unsolved puzzles of the level first, then any of the level', () => {
     const rng = createRng(1);
-    for (let k = 0; k < 10; k++) expect(pickPuzzle(bank, new Set(['a']), rng).id).toBe('b');
+    for (let k = 0; k < 10; k++) expect(pickPuzzle(bank, 9, new Set(['a']), rng).id).toBe('b');
     const ids = new Set(
-      Array.from({ length: 20 }, () => pickPuzzle(bank, new Set(['a', 'b']), rng).id),
+      Array.from({ length: 20 }, () => pickPuzzle(bank, 9, new Set(['a', 'b']), rng).id),
     );
-    expect(ids.size).toBe(2);
+    expect(ids).toEqual(new Set(['a', 'b']));
+    const ref = pickPuzzle(bank, 11, new Set(), rng);
+    expect([ref.id, ref.level, ref.rating]).toEqual(['d', 11, 11]);
+    expect(pickPuzzle(bank, 10, new Set(['c']), rng).id).toBe('c');
+  });
+
+  it('labels ratings by level', () => {
+    expect(ratingLabel({ rating: 9.14, level: 9 })).toBe('9.1');
+    expect(ratingLabel({ rating: 10, level: 10 })).toBe('10');
+    expect(ratingLabel({ rating: 11, level: 11 })).toBe('11+');
+    expect(ratingLabel({ rating: 7.5 })).toBe('7.5');
   });
 
   it('summarizes solves', () => {
     const r = (rating: number, timeMs: number, hints = 0, checks = 0): SolveRecord => ({
       id: String(Math.random()),
       rating,
+      level: rating >= 11 ? 11 : rating >= 10 ? 10 : rating >= 9 ? 9 : undefined,
       timeMs,
       hints,
       checks,
       date: '2026-10-09',
     });
-    const records = [r(7.2, 600_000), r(7.8, 300_000, 1), r(8.5, 900_000, 0, 2), r(8.1, 1_200_000)];
+    const records = [r(7.2, 600_000), r(9.1, 300_000, 1), r(11, 900_000, 0, 2), r(9.3, 1_200_000)];
     expect(summarize(records)).toEqual({
       solved: 4,
       clean: 2,
       bestMs: 600_000,
       averageMs: 750_000,
     });
-    const by = summarizeByRange(records);
-    expect(by.map((x) => x.summary.solved)).toEqual([2, 2, 0]);
-    expect(by[2].summary.bestMs).toBeNull();
+    const by = summarizeByLevel(records);
+    expect(by.map((x) => x.name)).toEqual(['9', '10', '11+']);
+    expect(by.map((x) => x.summary.solved)).toEqual([2, 0, 1]);
+    expect(by[0].summary.bestMs).toBe(1_200_000);
+    expect(by[1].summary.bestMs).toBeNull();
   });
 });

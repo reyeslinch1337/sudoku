@@ -1,4 +1,5 @@
 import { formatTime } from '../../game/timer';
+import { ratingLabel } from '../../game/pick';
 import type { Store } from '../store';
 import { IconMenu, IconPause } from './Icons';
 
@@ -17,7 +18,7 @@ export function Header({ store }: { store: Store }) {
       </button>
       <div class="header-info">
         <span class="rating" title={t.rating}>
-          {g.ref.rating.toFixed(1)}
+          {ratingLabel(g.ref)}
         </span>
         <span class="timer">{formatTime(g.elapsedMs)}</span>
       </div>

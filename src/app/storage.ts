@@ -3,6 +3,7 @@
 import type { GameState, PuzzleRef, Snapshot } from '../game/state';
 import { newGame } from '../game/state';
 import type { SolveRecord } from '../game/stats';
+import type { Level } from '../engine/generator';
 
 export interface KeyValueStore {
   getItem(key: string): string | null;
@@ -21,7 +22,11 @@ export type Lang = 'ru' | 'en';
 export interface Settings {
   lang: Lang;
   installTipShown: boolean;
+  /** Level chosen for the last new game. */
+  level: Level;
 }
+
+const isLevel = (x: unknown): x is Level => x === 9 || x === 10 || x === 11;
 
 /** What is saved of a game; givens and solution are rebuilt from the puzzle reference. */
 interface SavedGame extends Snapshot {
@@ -58,7 +63,8 @@ const isRef = (x: unknown): x is PuzzleRef => {
     isNumArray(r.transform.digitMap, 9, 9) &&
     isNumArray(r.transform.rowPerm, 9, 8) &&
     isNumArray(r.transform.colPerm, 9, 8) &&
-    typeof r.transform.transpose === 'boolean'
+    typeof r.transform.transpose === 'boolean' &&
+    (r.level === undefined || isLevel(r.level))
   );
 };
 
@@ -103,7 +109,8 @@ const isRecord = (x: unknown): x is SolveRecord => {
     typeof r.timeMs === 'number' &&
     typeof r.hints === 'number' &&
     typeof r.checks === 'number' &&
-    typeof r.date === 'string'
+    typeof r.date === 'string' &&
+    (r.level === undefined || isLevel(r.level))
   );
 };
 
@@ -147,6 +154,7 @@ export function loadSettings(store: KeyValueStore, language?: string): Settings 
   return {
     lang: x?.lang === 'ru' || x?.lang === 'en' ? x.lang : defaultLang(language),
     installTipShown: x?.installTipShown === true,
+    level: isLevel(x?.level) ? x.level : 9,
   };
 }
 

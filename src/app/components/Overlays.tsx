@@ -1,5 +1,13 @@
 import { useState } from 'preact/hooks';
-import { type Summary, summarize, summarizeByRange } from '../../game/stats';
+import type { Level } from '../../engine/generator';
+import { ratingLabel } from '../../game/pick';
+import {
+  LEVEL_NAMES,
+  type Summary,
+  solvedIds,
+  summarize,
+  summarizeByLevel,
+} from '../../game/stats';
 import { formatTime } from '../../game/timer';
 import type { Store } from '../store';
 
@@ -42,7 +50,7 @@ export function ConfirmNew({ store }: { store: Store }) {
     <Sheet title={t.newGame}>
       <p>{t.confirmNewGame}</p>
       <div class="row">
-        <button type="button" class="btn primary" onClick={store.startNewGame}>
+        <button type="button" class="btn primary" onClick={() => (store.overlay.value = 'newGame')}>
           {t.yes}
         </button>
         <button type="button" class="btn" onClick={() => (store.overlay.value = 'none')}>
@@ -74,18 +82,62 @@ function SummaryCard({ name, s, store }: { name: string; s: Summary; store: Stor
   );
 }
 
+/** Puzzles of a level in the bank and how many of them are solved. */
+function levelProgress(store: Store, level: Level): [number, number] {
+  const solved = solvedIds(store.stats.value);
+  const ofLevel = store.bank.filter((e) => e.l === level);
+  return [ofLevel.filter((e) => solved.has(e.p)).length, ofLevel.length];
+}
+
+const LEVELS: Level[] = [9, 10, 11];
+
+export function NewGame({ store }: { store: Store }) {
+  const t = store.t.value;
+  const last = store.settings.value.level;
+  return (
+    <Sheet title={t.chooseLevel}>
+      <div class="levels">
+        {LEVELS.map((level) => {
+          const [solved, total] = levelProgress(store, level);
+          return (
+            <button
+              type="button"
+              key={level}
+              class={level === last ? 'level-btn active' : 'level-btn'}
+              aria-label={LEVEL_NAMES[level]}
+              onClick={() => store.startNewGame(level)}
+            >
+              <span class="level-name">{LEVEL_NAMES[level]}</span>
+              <span class="level-note">{level === 9 ? t.levelWithHints : t.levelNoHints}</span>
+              <span class="level-progress">{t.progress(solved, total)}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" class="btn ghost" onClick={() => (store.overlay.value = 'none')}>
+        {t.close}
+      </button>
+    </Sheet>
+  );
+}
+
 export function Stats({ store }: { store: Store }) {
   const t = store.t.value;
   const records = store.stats.value;
-  const bankIds = new Set(store.bank.map((e) => e.p));
-  const solvedInBank = new Set(records.map((r) => r.id).filter((id) => bankIds.has(id))).size;
   return (
     <Sheet title={t.statistics}>
-      <p class="progress">{t.progress(solvedInBank, store.bank.length)}</p>
       <SummaryCard name={t.all} s={summarize(records)} store={store} />
-      {summarizeByRange(records).map((r) => (
-        <SummaryCard key={r.name} name={r.name} s={r.summary} store={store} />
-      ))}
+      {summarizeByLevel(records).map((r) => {
+        const [solved, total] = levelProgress(store, r.level);
+        return (
+          <SummaryCard
+            key={r.name}
+            name={`${r.name}: ${t.progress(solved, total)}`}
+            s={r.summary}
+            store={store}
+          />
+        );
+      })}
       <button type="button" class="btn ghost" onClick={() => (store.overlay.value = 'none')}>
         {t.close}
       </button>
@@ -189,6 +241,7 @@ export function Settings({ store }: { store: Store }) {
           </button>
         )}
       </div>
+      <p class="sources">{t.sources}</p>
       <button type="button" class="btn ghost" onClick={() => (store.overlay.value = 'none')}>
         {t.close}
       </button>
@@ -209,9 +262,9 @@ export function Win({ store }: { store: Store }) {
         <dt>{t.checks}</dt>
         <dd>{g.checks}</dd>
         <dt>{t.rating}</dt>
-        <dd>{g.ref.rating.toFixed(1)}</dd>
+        <dd>{ratingLabel(g.ref)}</dd>
       </dl>
-      <button type="button" class="btn primary" onClick={store.startNewGame}>
+      <button type="button" class="btn primary" onClick={store.requestNewGame}>
         {t.newGame}
       </button>
     </Sheet>

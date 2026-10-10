@@ -4,6 +4,7 @@ import { PEERS, basicCandidates, bit, parseDigits } from '../engine/grid';
 import { solve } from '../engine/solve';
 import { type Transform, applyTransform } from '../engine/transform';
 import type { Cand } from '../engine/step';
+import type { Level } from '../engine/generator';
 
 export const HISTORY_LIMIT = 500;
 
@@ -12,6 +13,8 @@ export interface PuzzleRef {
   id: string;
   rating: number;
   transform: Transform;
+  /** Bank level; absent for games started from the earlier bank of 7.x-9.x puzzles. */
+  level?: Level;
 }
 
 export interface Snapshot {
