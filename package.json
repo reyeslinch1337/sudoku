@@ -17,7 +17,8 @@
     "e2e": "playwright test",
     "generate": "tsx scripts/generate.ts",
     "verify-bank": "tsx scripts/verify-bank.ts",
-    "icons": "cd public && pwa-assets-generator --preset minimal-2023 icon.svg"
+    "icons": "cd public && pwa-assets-generator --preset minimal-2023 icon.svg",
+    "import-collections": "tsx scripts/import-collections.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.11.3",

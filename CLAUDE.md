@@ -17,9 +17,14 @@
 
 ## Как обновить банк задач
 
-1. `npm run generate -- --seed N` (новый seed даёт новый банк; состояние в `.generate-state/`, прерванный запуск продолжается).
-2. `npm run verify-bank`.
-3. Закоммитить `src/data/puzzles.json`. Статистика игроков привязана к строке задачи, поэтому смена банка её не ломает.
+Банк состоит из трёх уровней по 167 задач (спек `docs/superpowers/specs/2026-10-10-difficulty-levels-design.md`).
+
+1. Уровень 9: `npm run generate -- --seed N --out FILE` (состояние в `.generate-state/`, прерванный запуск продолжается).
+2. Скачать `data.zip` из https://github.com/t-dillon/tdoku и распаковать (в репозиторий не класть).
+3. `npm run import-collections -- --data DIR --bank9 FILE` собирает `src/data/puzzles.json` (уровни 10 и 11+ из коллекций).
+4. `npm run verify-bank`, затем закоммитить `src/data/puzzles.json`. Источники описаны в `src/data/NOTICE.md`.
+
+Статистика игроков привязана к строке задачи, поэтому смена банка её не ломает.
 
 Иконки: исходник `public/icon.svg`, PNG пересобираются командой `npm run icons`.
 
@@ -36,7 +41,8 @@
 - `npm run format` / `npm run format:check` - Prettier
 - `npm run build` - production-сборка в `dist/`
 - `npm run e2e` - Playwright smoke-тесты (локально с предустановленным Chromium: `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run e2e`)
-- `npm run generate` - генерация банка задач
+- `npm run generate` - генерация задач уровня 9
+- `npm run import-collections` - сборка банка с уровнями 10 и 11+ из коллекций
 - `npm run verify-bank` - полная проверка банка
 
 ## Структура

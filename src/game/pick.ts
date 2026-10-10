@@ -8,5 +8,5 @@ export function pickPuzzle(bank: BankEntry[], solved: Set<string>, rng: Rng): Pu
   const open = bank.filter((e) => !solved.has(e.p));
   const pool = open.length ? open : bank;
   const e = pool[randInt(rng, pool.length)];
-  return { id: e.p, rating: e.r, transform: randomTransform(rng) };
+  return { id: e.p, rating: e.r ?? e.l, transform: randomTransform(rng) };
 }

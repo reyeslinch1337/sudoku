@@ -9,7 +9,7 @@ import { newGame, reduce } from '../../src/game/state';
 import { IDENTITY } from '../../src/engine/transform';
 
 const PUZZLE = '2..4..9.......18....762..4..8...5.3..6......7...1........34....3.52..6..6...5...9';
-const bank = [{ p: PUZZLE, r: 7.2 }];
+const bank = [{ p: PUZZLE, l: 9 as const, r: 7.2 }];
 
 function memoryStore(): KeyValueStore {
   const data = new Map<string, string>();
