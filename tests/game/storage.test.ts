@@ -89,8 +89,11 @@ describe('storage', () => {
     const store = memoryStore();
     expect(loadSettings(store, 'ru-RU').lang).toBe('ru');
     expect(loadSettings(store, 'de').lang).toBe('en');
-    saveSettings(store, { lang: 'ru', installTipShown: true });
-    expect(loadSettings(store, 'en-US')).toEqual({ lang: 'ru', installTipShown: true });
+    expect(loadSettings(store, 'ru-RU').level).toBe(9);
+    saveSettings(store, { lang: 'ru', installTipShown: true, level: 11 });
+    expect(loadSettings(store, 'en-US')).toEqual({ lang: 'ru', installTipShown: true, level: 11 });
+    store.setItem(KEYS.settings, JSON.stringify({ lang: 'en', level: 12 }));
+    expect(loadSettings(store).level).toBe(9);
     expect(defaultLang(undefined)).toBe('en');
   });
 

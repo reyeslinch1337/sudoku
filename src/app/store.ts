@@ -1,7 +1,7 @@
 // Application state on signals. All game changes go through the pure reducer in game/state.
 
 import { batch, computed, signal } from '@preact/signals';
-import type { BankEntry } from '../engine/generator';
+import type { BankEntry, Level } from '../engine/generator';
 import { createRng } from '../engine/random';
 import { type Action, type GameState, newGame, reduce } from '../game/state';
 import { findErrors } from '../game/check';
@@ -23,7 +23,7 @@ import {
   saveStats,
 } from './storage';
 
-export type Overlay = 'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew';
+export type Overlay = 'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew' | 'newGame';
 
 export interface HintState {
   /** 0 closed, 1 technique name, 2 highlight, 3 conclusion. */
@@ -54,13 +54,20 @@ export function createStore(deps: StoreDeps) {
   const settings = signal(loadSettings(deps.storage, deps.language));
   const stats = signal<SolveRecord[]>(loadStats(deps.storage));
 
-  const freshGame = (): GameState =>
+  const freshGame = (level: Level): GameState =>
     newGame(
-      pickPuzzle(deps.bank, solvedIds(stats.value), createRng(Math.floor(random() * 2 ** 32))),
+      pickPuzzle(
+        deps.bank,
+        level,
+        solvedIds(stats.value),
+        createRng(Math.floor(random() * 2 ** 32)),
+      ),
     );
 
   const loaded = loadGame(deps.storage);
-  const game = signal<GameState>(loaded && !loaded.solved ? loaded : freshGame());
+  const game = signal<GameState>(
+    loaded && !loaded.solved ? loaded : freshGame(settings.value.level),
+  );
   const selected = signal<number | null>(null);
   const noteMode = signal(false);
   const overlay = signal<Overlay>('none');
@@ -99,6 +106,7 @@ export function createStore(deps: StoreDeps) {
         const record: SolveRecord = {
           id: next.ref.id,
           rating: next.ref.rating,
+          level: next.ref.level,
           timeMs: next.elapsedMs,
           hints: next.hints,
           checks: next.checks,
@@ -134,7 +142,6 @@ export function createStore(deps: StoreDeps) {
     const h = hint.value;
     if (h.loading) return;
     if (h.level === 0) {
-      dispatch({ type: 'hintUsed' });
       const token = ++hintToken;
       hint.value = { level: 1, hint: null, loading: true };
       const g = game.value;
@@ -145,6 +152,8 @@ export function createStore(deps: StoreDeps) {
         solution: g.solution,
       });
       if (token !== hintToken) return;
+      // A hint that finds nothing gives nothing away, so it does not count.
+      if (result.kind !== 'none') dispatch({ type: 'hintUsed' });
       hint.value = { level: 1, hint: result, loading: false };
       return;
     }
@@ -176,16 +185,18 @@ export function createStore(deps: StoreDeps) {
     showToast(errors.length ? t.value.errorsFound(errors.length) : t.value.noErrors);
   }
 
+  /** Asks to confirm abandoning an unfinished game, then offers the level choice. */
   function requestNewGame() {
     const g = game.value;
     const started = g.values.some((v, i) => v !== g.givens[i]) || g.notes.some((n) => n);
-    overlay.value = started && !g.solved ? 'confirmNew' : 'none';
-    if (!started || g.solved) startNewGame();
+    overlay.value = started && !g.solved ? 'confirmNew' : 'newGame';
   }
 
-  function startNewGame() {
+  function startNewGame(level: Level) {
+    settings.value = { ...settings.value, level };
+    saveSettings(deps.storage, settings.value);
     batch(() => {
-      game.value = freshGame();
+      game.value = freshGame(level);
       selected.value = null;
       noteMode.value = false;
       paused.value = false;

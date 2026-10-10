@@ -32,7 +32,12 @@ export const en: Dict = {
   apply: 'Apply',
   thinking: 'Looking for a step...',
   hintError: 'There is a mistake on the board',
-  hintNone: 'No next step found',
+  hintNone: 'No logical hint is available for this puzzle',
+  chooseLevel: 'Choose a level',
+  levelWithHints: 'Hints available',
+  levelNoHints: 'No hints',
+  sources:
+    'Levels 10 and 11+: The hardest sudokus collection of the enjoysudoku.com forum, tdoku data set (BSD-2).',
   wrongDigit: (cell, d) => `${cell} holds a wrong digit ${d}`,
   lostCandidate: (cell) => `The notes in ${cell} miss the correct digit`,
   fixWrongDigit: (cell, d) => `Remove ${d} from ${cell}`,

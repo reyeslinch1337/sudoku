@@ -9,7 +9,12 @@ import { newGame, reduce } from '../../src/game/state';
 import { IDENTITY } from '../../src/engine/transform';
 
 const PUZZLE = '2..4..9.......18....762..4..8...5.3..6......7...1........34....3.52..6..6...5...9';
-const bank = [{ p: PUZZLE, l: 9 as const, r: 7.2 }];
+// Easter Monster: beyond our solver, so the hint finds no step.
+const MONSTER = '1.......2.9.4...5...6...7...5.9.3.......7.......85..4.7.....6...3...9.8...2.....1';
+const bank = [
+  { p: PUZZLE, l: 9 as const, r: 9.2 },
+  { p: MONSTER, l: 11 as const },
+];
 
 function memoryStore(): KeyValueStore {
   const data = new Map<string, string>();
@@ -109,5 +114,43 @@ describe('app', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Check' }));
     expect(cell(container, i).classList.contains('error')).toBe(true);
     expect(store.game.value.checks).toBe(1);
+  });
+
+  it('starts a new game on the chosen level', () => {
+    const { store, storage } = setup();
+    expect(store.game.value.ref.level).toBe(9);
+    expect(document.querySelector('.rating')!.textContent).toBe('9.2');
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New game' }));
+    expect(screen.getByRole('dialog', { name: 'Choose a level' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '11+' }));
+    expect(store.game.value.ref.id).toBe(MONSTER);
+    expect(document.querySelector('.rating')!.textContent).toBe('11+');
+    expect(JSON.parse(storage.getItem('xsudoku.v1.settings')!).level).toBe(11);
+  });
+
+  it('asks before abandoning an unfinished game', () => {
+    const { store, container } = setup();
+    const i = store.game.value.givens.findIndex((v) => v === 0);
+    fireEvent.click(cell(container, i));
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New game' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes' }));
+    expect(screen.getByRole('dialog', { name: 'Choose a level' })).toBeTruthy();
+  });
+
+  it('a hint that finds nothing says so and does not count', async () => {
+    const storage = memoryStore();
+    storage.setItem(
+      'xsudoku.v1.settings',
+      JSON.stringify({ lang: 'en', installTipShown: true, level: 11 }),
+    );
+    const { store } = setup({ storage });
+    expect(store.game.value.ref.id).toBe(MONSTER);
+    fireEvent.click(screen.getByRole('button', { name: 'Hint' }));
+    await screen.findByText('No logical hint is available for this puzzle');
+    expect(store.game.value.hints).toBe(0);
+    expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
   });
 });
