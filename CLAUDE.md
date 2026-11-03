@@ -29,6 +29,8 @@
 `npm run import-collections -- --data DIR --bank9 FILE --base src/data/puzzles.json --add N --seed S`
 (новый seed для каждого дополнения). Статистика игроков привязана к строке задачи.
 
+Иконки: исходник `public/icon.svg`, PNG пересобираются командой `npm run icons`.
+
 ## Сообщения игрокам
 
 - По ссылке (откроется в Safari): `npm run greeting-link -- "текст"` (`\n` для перевода строки);
