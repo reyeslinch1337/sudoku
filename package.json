@@ -18,7 +18,9 @@
     "generate": "tsx scripts/generate.ts",
     "verify-bank": "tsx scripts/verify-bank.ts",
     "icons": "cd public && pwa-assets-generator --preset minimal-2023 icon.svg",
-    "import-collections": "tsx scripts/import-collections.ts"
+    "import-collections": "tsx scripts/import-collections.ts",
+    "greeting-link": "tsx scripts/greeting-link.ts",
+    "message": "tsx scripts/message.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.11.3",

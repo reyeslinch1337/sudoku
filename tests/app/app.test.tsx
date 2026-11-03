@@ -25,9 +25,15 @@ function memoryStore(): KeyValueStore {
   };
 }
 
-function setup(opts: { storage?: KeyValueStore; language?: string } = {}) {
+function setup(opts: { storage?: KeyValueStore; language?: string; greeting?: string } = {}) {
   const storage = opts.storage ?? memoryStore();
-  const store = createStore({ bank, storage, language: opts.language ?? 'en-US', random: () => 0 });
+  const store = createStore({
+    bank,
+    storage,
+    language: opts.language ?? 'en-US',
+    random: () => 0,
+    greeting: opts.greeting,
+  });
   const view = render(<App store={store} />);
   return { store, storage, ...view };
 }
@@ -152,5 +158,43 @@ describe('app', () => {
     await screen.findByText('No logical hint is available for this puzzle');
     expect(store.game.value.hints).toBe(0);
     expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
+  });
+
+  it('shows a greeting from the link and closes it', () => {
+    const { store } = setup({ greeting: 'To the best\nLegend' });
+    const dialog = screen.getByRole('dialog', { name: 'To the best' });
+    expect(dialog.textContent).toContain('Legend');
+    expect(dialog.querySelectorAll('.confetti').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Thank you' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(store.overlay.value).toBe('none');
+  });
+
+  it('shows no greeting without a link', () => {
+    setup();
+    expect(document.querySelector('.greeting-card')).toBeNull();
+  });
+
+  it('creates a device code once and shows it in settings', () => {
+    const { store, storage } = setup();
+    const code = store.settings.value.deviceCode!;
+    expect(code).toMatch(/^[2-9A-HJKMNP-Z]{8}$/);
+    cleanup();
+    const again = setup({ storage });
+    expect(again.store.settings.value.deviceCode).toBe(code);
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByTestId('device-code').textContent).toBe(
+      `${code.slice(0, 4)}-${code.slice(4)}`,
+    );
+  });
+
+  it('shows an addressed message only when no other sheet is open', async () => {
+    const { store } = setup();
+    store.overlay.value = 'menu';
+    expect(store.showMessage('Hello')).toBe(false);
+    store.overlay.value = 'none';
+    expect(store.showMessage('Hello')).toBe(true);
+    expect(await screen.findByRole('dialog', { name: 'Hello' })).toBeTruthy();
   });
 });

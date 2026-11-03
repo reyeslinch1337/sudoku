@@ -37,6 +37,10 @@ export interface Dict {
   levelWithHints: string;
   levelNoHints: string;
   sources: string;
+  thanks: string;
+  deviceCode: string;
+  copy: string;
+  codeCopied: string;
   wrongDigit: (cell: string, d: number) => string;
   lostCandidate: (cell: string) => string;
   fixWrongDigit: (cell: string, d: number) => string;

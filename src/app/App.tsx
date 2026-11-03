@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { HintPanel } from './components/HintPanel';
 import { ConfirmNew, Menu, NewGame, Pause, Settings, Stats, Win } from './components/Overlays';
 import { InstallTip, UpdateBanner } from './components/Banners';
+import { Greeting } from './components/Greeting';
 
 const AUTOSAVE_MS = 15_000;
 
@@ -97,6 +98,7 @@ export function App({ store, offerInstall = false }: { store: Store; offerInstal
       {overlay === 'stats' && <Stats store={store} />}
       {overlay === 'settings' && <Settings store={store} />}
       {overlay === 'win' && <Win store={store} />}
+      {overlay === 'greeting' && <Greeting store={store} />}
     </div>
   );
 }
