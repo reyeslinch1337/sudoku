@@ -38,6 +38,9 @@ export interface Dict {
   levelNoHints: string;
   sources: string;
   thanks: string;
+  success: string;
+  crownTitle: (level: string) => string;
+  crownText: (total: number) => string;
   deviceCode: string;
   copy: string;
   codeCopied: string;

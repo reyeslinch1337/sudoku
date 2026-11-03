@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { Level } from '../../engine/generator';
-import { ratingLabel } from '../../game/pick';
 import { formatCode } from '../messages';
+import { Crown } from './Rewards';
 import {
   LEVEL_NAMES,
   type Summary,
@@ -95,6 +95,7 @@ const LEVELS: Level[] = [9, 10, 11];
 export function NewGame({ store }: { store: Store }) {
   const t = store.t.value;
   const last = store.settings.value.level;
+  const crowned = new Set(store.crowns.value.map((c) => c.level));
   return (
     <Sheet title={t.chooseLevel}>
       <div class="levels">
@@ -108,7 +109,10 @@ export function NewGame({ store }: { store: Store }) {
               aria-label={LEVEL_NAMES[level]}
               onClick={() => store.startNewGame(level)}
             >
-              <span class="level-name">{LEVEL_NAMES[level]}</span>
+              <span class="level-name">
+                {LEVEL_NAMES[level]}
+                {crowned.has(level) && <Crown size={20} class="level-crown" />}
+              </span>
               <span class="level-note">{level === 9 ? t.levelWithHints : t.levelNoHints}</span>
               <span class="level-progress">{t.progress(solved, total)}</span>
             </button>
@@ -266,28 +270,6 @@ export function Settings({ store }: { store: Store }) {
       )}
       <button type="button" class="btn ghost" onClick={() => (store.overlay.value = 'none')}>
         {t.close}
-      </button>
-    </Sheet>
-  );
-}
-
-export function Win({ store }: { store: Store }) {
-  const t = store.t.value;
-  const g = store.game.value;
-  return (
-    <Sheet title={t.solvedTitle}>
-      <dl class="stats-grid">
-        <dt>{t.time}</dt>
-        <dd>{formatTime(g.elapsedMs)}</dd>
-        <dt>{t.hints}</dt>
-        <dd>{g.hints}</dd>
-        <dt>{t.checks}</dt>
-        <dd>{g.checks}</dd>
-        <dt>{t.rating}</dt>
-        <dd>{ratingLabel(g.ref)}</dd>
-      </dl>
-      <button type="button" class="btn primary" onClick={store.requestNewGame}>
-        {t.newGame}
       </button>
     </Sheet>
   );

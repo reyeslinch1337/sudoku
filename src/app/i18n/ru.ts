@@ -37,6 +37,15 @@ export const ru: Dict = {
   levelWithHints: 'Подсказки работают',
   levelNoHints: 'Без подсказок',
   thanks: 'Спасибо',
+  success: 'Успех!',
+  crownTitle: (level) => `Уровень ${level} пройден полностью!`,
+  crownText: (n) => {
+    const m10 = n % 10;
+    const m100 = n % 100;
+    const one = m10 === 1 && m100 !== 11;
+    const few = m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14);
+    return `${one ? 'Решена' : 'Решены'} все ${n} ${one ? 'задача' : few ? 'задачи' : 'задач'}`;
+  },
   deviceCode: 'Код устройства',
   copy: 'Скопировать',
   codeCopied: 'Код скопирован',
