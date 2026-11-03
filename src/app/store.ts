@@ -23,7 +23,8 @@ import {
   saveStats,
 } from './storage';
 
-export type Overlay = 'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew' | 'newGame';
+export type Overlay =
+  'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew' | 'newGame' | 'greeting';
 
 export interface HintState {
   /** 0 closed, 1 technique name, 2 highlight, 3 conclusion. */
@@ -41,6 +42,8 @@ export interface StoreDeps {
   hints?: HintProvider;
   random?: () => number;
   now?: () => Date;
+  /** Greeting text from the page address, shown over the game at start. */
+  greeting?: string | null;
 }
 
 /** Actions that leave the board as it is. */
@@ -70,7 +73,8 @@ export function createStore(deps: StoreDeps) {
   );
   const selected = signal<number | null>(null);
   const noteMode = signal(false);
-  const overlay = signal<Overlay>('none');
+  const greeting = signal<string | null>(deps.greeting ?? null);
+  const overlay = signal<Overlay>(greeting.value ? 'greeting' : 'none');
   const paused = signal(false);
   const hint = signal<HintState>(CLOSED);
   /** Cells flagged by the last check; cleared by the next board change. */
@@ -208,6 +212,13 @@ export function createStore(deps: StoreDeps) {
     persist();
   }
 
+  function closeGreeting() {
+    batch(() => {
+      greeting.value = null;
+      if (overlay.value === 'greeting') overlay.value = 'none';
+    });
+  }
+
   function setLang(lang: Lang) {
     settings.value = { ...settings.value, lang };
     saveSettings(deps.storage, settings.value);
@@ -249,6 +260,8 @@ export function createStore(deps: StoreDeps) {
     checked,
     toast,
     update,
+    greeting,
+    closeGreeting,
     t,
     dispatch,
     inputDigit,
