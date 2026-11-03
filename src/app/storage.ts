@@ -2,7 +2,7 @@
 
 import type { GameState, PuzzleRef, Snapshot } from '../game/state';
 import { newGame } from '../game/state';
-import type { SolveRecord } from '../game/stats';
+import type { Crown, SolveRecord } from '../game/stats';
 import type { Level } from '../engine/generator';
 
 export interface KeyValueStore {
@@ -15,6 +15,7 @@ export const KEYS = {
   game: 'xsudoku.v1.game',
   stats: 'xsudoku.v1.stats',
   settings: 'xsudoku.v1.settings',
+  crowns: 'xsudoku.v1.crowns',
 } as const;
 
 export type Lang = 'ru' | 'en';
@@ -147,6 +148,19 @@ export function loadStats(store: KeyValueStore): SolveRecord[] {
 export const saveStats = (store: KeyValueStore, records: SolveRecord[]): void =>
   writeJson(store, KEYS.stats, records);
 
+const isCrown = (x: unknown): x is Crown => {
+  const c = x as Crown;
+  return !!c && isLevel(c.level) && typeof c.total === 'number' && typeof c.date === 'string';
+};
+
+export function loadCrowns(store: KeyValueStore): Crown[] {
+  const x = readJson(store, KEYS.crowns);
+  return Array.isArray(x) ? x.filter(isCrown) : [];
+}
+
+export const saveCrowns = (store: KeyValueStore, crowns: Crown[]): void =>
+  writeJson(store, KEYS.crowns, crowns);
+
 export function defaultLang(language: string | undefined): Lang {
   return language?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
 }
@@ -172,15 +186,23 @@ const EXPORT_PREFIX = 'XSUDOKU1:';
 interface ExportData {
   stats: SolveRecord[];
   game: SavedGame | null;
+  /** Absent in exports made before crowns existed. */
+  crowns?: Crown[];
 }
 
-export function exportData(stats: SolveRecord[], game: GameState | null): string {
-  const data: ExportData = { stats, game: game ? toSaved(game) : null };
+export function exportData(
+  stats: SolveRecord[],
+  game: GameState | null,
+  crowns: Crown[] = [],
+): string {
+  const data: ExportData = { stats, game: game ? toSaved(game) : null, crowns };
   return EXPORT_PREFIX + btoa(JSON.stringify(data));
 }
 
 /** Parses an export string; null if it is not valid. */
-export function importData(text: string): { stats: SolveRecord[]; game: GameState | null } | null {
+export function importData(
+  text: string,
+): { stats: SolveRecord[]; game: GameState | null; crowns: Crown[] } | null {
   const t = text.trim();
   if (!t.startsWith(EXPORT_PREFIX)) return null;
   try {
@@ -188,7 +210,8 @@ export function importData(text: string): { stats: SolveRecord[]; game: GameStat
     if (!Array.isArray(data.stats) || !data.stats.every(isRecord)) return null;
     const game = data.game ? fromSaved(data.game) : null;
     if (data.game && !game) return null;
-    return { stats: data.stats, game };
+    const crowns = Array.isArray(data.crowns) ? data.crowns.filter(isCrown) : [];
+    return { stats: data.stats, game, crowns };
   } catch {
     return null;
   }

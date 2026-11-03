@@ -46,5 +46,24 @@ export function summarizeByLevel(records: SolveRecord[]) {
   }));
 }
 
+/** A level completed in full: every puzzle of it in the bank was solved. Kept for good. */
+export interface Crown {
+  level: Level;
+  /** Puzzles in the level when it was completed. */
+  total: number;
+  /** ISO date. */
+  date: string;
+}
+
+/** True when every bank puzzle of the level is among the solved ids. */
+export function levelComplete(
+  bank: { p: string; l: Level }[],
+  level: Level,
+  solved: Set<string>,
+): boolean {
+  const ofLevel = bank.filter((e) => e.l === level);
+  return ofLevel.length > 0 && ofLevel.every((e) => solved.has(e.p));
+}
+
 /** Distinct puzzles solved. */
 export const solvedIds = (records: SolveRecord[]): Set<string> => new Set(records.map((r) => r.id));

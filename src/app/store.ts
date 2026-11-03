@@ -7,7 +7,7 @@ import { type Action, type GameState, newGame, reduce } from '../game/state';
 import { findErrors } from '../game/check';
 import type { Hint } from '../game/hint';
 import { pickPuzzle } from '../game/pick';
-import { type SolveRecord, solvedIds } from '../game/stats';
+import { type Crown, type SolveRecord, levelComplete, solvedIds } from '../game/stats';
 import { type HintProvider, directHints } from './hintClient';
 import { DICTS } from './i18n';
 import { newDeviceCode } from './messages';
@@ -16,16 +16,18 @@ import {
   type Lang,
   exportData,
   importData,
+  loadCrowns,
   loadGame,
   loadSettings,
   loadStats,
+  saveCrowns,
   saveGame,
   saveSettings,
   saveStats,
 } from './storage';
 
 export type Overlay =
-  'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew' | 'newGame' | 'greeting';
+  'none' | 'menu' | 'stats' | 'settings' | 'win' | 'confirmNew' | 'newGame' | 'greeting' | 'crown';
 
 export interface HintState {
   /** 0 closed, 1 technique name, 2 highlight, 3 conclusion. */
@@ -61,6 +63,7 @@ export function createStore(deps: StoreDeps) {
     saveSettings(deps.storage, settings.value);
   }
   const stats = signal<SolveRecord[]>(loadStats(deps.storage));
+  const crowns = signal<Crown[]>(loadCrowns(deps.storage));
 
   const freshGame = (level: Level): GameState =>
     newGame(
@@ -124,7 +127,17 @@ export function createStore(deps: StoreDeps) {
         stats.value = [...stats.value, record];
         saveStats(deps.storage, stats.value);
         selected.value = null;
-        overlay.value = 'win';
+        const level = next.ref.level;
+        const earned =
+          level !== undefined &&
+          !crowns.value.some((c) => c.level === level) &&
+          levelComplete(deps.bank, level, solvedIds(stats.value));
+        if (earned) {
+          const total = deps.bank.filter((e) => e.l === level).length;
+          crowns.value = [...crowns.value, { level, total, date: record.date }];
+          saveCrowns(deps.storage, crowns.value);
+        }
+        overlay.value = earned ? 'crown' : 'win';
       }
     });
     if (a.type !== 'tick') persist();
@@ -244,7 +257,7 @@ export function createStore(deps: StoreDeps) {
     saveSettings(deps.storage, settings.value);
   }
 
-  const exportText = () => exportData(stats.value, game.value);
+  const exportText = () => exportData(stats.value, game.value, crowns.value);
 
   /** Returns false when the text is not a valid export. */
   function importText(text: string): boolean {
@@ -252,12 +265,14 @@ export function createStore(deps: StoreDeps) {
     if (!data) return false;
     batch(() => {
       stats.value = data.stats;
+      crowns.value = data.crowns;
       if (data.game) game.value = data.game;
       hint.value = CLOSED;
       checked.value = null;
       selected.value = null;
     });
     saveStats(deps.storage, stats.value);
+    saveCrowns(deps.storage, crowns.value);
     persist();
     return true;
   }
@@ -266,6 +281,7 @@ export function createStore(deps: StoreDeps) {
     bank: deps.bank,
     settings,
     stats,
+    crowns,
     game,
     selected,
     noteMode,

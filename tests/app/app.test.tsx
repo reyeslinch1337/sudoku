@@ -25,10 +25,17 @@ function memoryStore(): KeyValueStore {
   };
 }
 
-function setup(opts: { storage?: KeyValueStore; language?: string; greeting?: string } = {}) {
+function setup(
+  opts: {
+    storage?: KeyValueStore;
+    language?: string;
+    greeting?: string;
+    bank?: typeof bank;
+  } = {},
+) {
   const storage = opts.storage ?? memoryStore();
   const store = createStore({
-    bank,
+    bank: opts.bank ?? bank,
     storage,
     language: opts.language ?? 'en-US',
     random: () => 0,
@@ -94,8 +101,55 @@ describe('app', () => {
     const { store, container } = setup({ storage });
     fireEvent.click(cell(container, last));
     fireEvent.click(screen.getByRole('button', { name: String(g.solution[last]) }));
-    expect(screen.getByRole('dialog', { name: 'Solved' })).toBeTruthy();
+    const dialog = screen.getByRole('dialog', { name: 'Success!' });
+    expect(dialog.querySelector('.reward-icon')).not.toBeNull();
+    expect(dialog.querySelectorAll('.confetti').length).toBeGreaterThan(0);
     expect(store.stats.value).toHaveLength(1);
+    expect(store.crowns.value).toHaveLength(0);
+  });
+
+  /** A saved level 9 game one digit from the end; returns the last cell and its digit. */
+  function nearlySolved(storage: KeyValueStore) {
+    let g = newGame({ id: PUZZLE, rating: 9.2, level: 9, transform: IDENTITY });
+    const empties = g.values.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
+    const last = empties.pop()!;
+    for (const i of empties) g = reduce(g, { type: 'digit', cell: i, digit: g.solution[i] });
+    saveGame(storage, g);
+    return { last, digit: g.solution[last] };
+  }
+
+  it('awards a crown for the last unsolved puzzle of a level, once and for good', () => {
+    const storage = memoryStore();
+    const { last, digit } = nearlySolved(storage);
+    const { store, container } = setup({ storage });
+    fireEvent.click(cell(container, last));
+    fireEvent.click(screen.getByRole('button', { name: String(digit) }));
+    const dialog = screen.getByRole('dialog', { name: 'Level 9 fully completed!' });
+    expect(dialog.textContent).toContain('All 1 puzzles solved');
+    expect(store.crowns.value.map((c) => [c.level, c.total])).toEqual([[9, 1]]);
+    cleanup();
+
+    // Later the level grows: the crown stays, the picker shows it, solving again gives none.
+    const grown = [...bank, { p: PUZZLE.replace('2', '.'), l: 9 as const, r: 9.0 }];
+    const again = setup({ storage, bank: grown });
+    expect(again.store.crowns.value).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New game' }));
+    const picker = screen.getByRole('dialog', { name: 'Choose a level' });
+    const levels = [...picker.querySelectorAll('.level-btn')];
+    expect(levels[0].querySelector('.level-crown')).not.toBeNull();
+    expect(levels[2].querySelector('.level-crown')).toBeNull();
+  });
+
+  it('gives no crown while the level has unsolved puzzles', () => {
+    const storage = memoryStore();
+    const { last, digit } = nearlySolved(storage);
+    const two = [...bank, { p: PUZZLE.replace('2', '.'), l: 9 as const, r: 9.0 }];
+    const { store, container } = setup({ storage, bank: two });
+    fireEvent.click(cell(container, last));
+    fireEvent.click(screen.getByRole('button', { name: String(digit) }));
+    expect(screen.getByRole('dialog', { name: 'Success!' })).toBeTruthy();
+    expect(store.crowns.value).toHaveLength(0);
   });
 
   it('switches language', async () => {

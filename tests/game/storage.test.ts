@@ -103,7 +103,12 @@ describe('storage', () => {
     const back = importData('  ' + text + '\n')!;
     expect(back.stats).toEqual([record]);
     expect(back.game!.values).toEqual(g.values);
-    expect(importData(exportData([], null))).toEqual({ stats: [], game: null });
+    expect(importData(exportData([], null))).toEqual({ stats: [], game: null, crowns: [] });
+    const crowns = [{ level: 9 as const, total: 367, date: '2026-11-03' }];
+    expect(importData(exportData([record], null, crowns))!.crowns).toEqual(crowns);
+    // Exports from before crowns existed still import.
+    const legacy = 'XSUDOKU1:' + btoa(JSON.stringify({ stats: [record], game: null }));
+    expect(importData(legacy)).toEqual({ stats: [record], game: null, crowns: [] });
     expect(importData('hello')).toBeNull();
     expect(importData('XSUDOKU1:###')).toBeNull();
   });
