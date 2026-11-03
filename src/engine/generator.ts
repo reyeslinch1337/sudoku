@@ -20,7 +20,7 @@ export interface Bucket {
 }
 
 /** Most puzzles per difficulty level in the bank. */
-export const LEVEL_QUOTA = 167;
+export const LEVEL_QUOTA = 367;
 
 /** Generated puzzles form level 9; levels 10 and 11+ come from collections. */
 export const BUCKETS: Bucket[] = [{ name: '9', min: 9.0, max: 9.5, quota: LEVEL_QUOTA }];
@@ -151,6 +151,43 @@ export function selectBank(
       }
       if (!progressed) break;
     }
+  }
+  return out;
+}
+
+/**
+ * Takes up to n rated puzzles whose fingerprint is not in `seen`, letting the rating levels
+ * (9.0, 9.1, ...) take turns so the additions spread over the whole range. Taken puzzles are
+ * added to `seen`.
+ */
+export function pickSpread(
+  candidates: { p: string; r: number }[],
+  n: number,
+  seen: Set<string>,
+): BankEntry[] {
+  const levels = new Map<number, { p: string; r: number }[]>();
+  for (const c of candidates) {
+    const key = Math.round(c.r * 10);
+    if (!levels.has(key)) levels.set(key, []);
+    levels.get(key)!.push(c);
+  }
+  const queues = [...levels.entries()].sort((a, b) => a[0] - b[0]).map(([, q]) => q);
+  const pos = queues.map(() => 0);
+  const out: BankEntry[] = [];
+  while (out.length < n) {
+    let progressed = false;
+    for (let k = 0; k < queues.length && out.length < n; k++) {
+      while (pos[k] < queues[k].length) {
+        const c = queues[k][pos[k]++];
+        const f = fingerprint(parseDigits(c.p));
+        if (seen.has(f)) continue;
+        seen.add(f);
+        out.push({ p: c.p, l: 9, r: c.r });
+        progressed = true;
+        break;
+      }
+    }
+    if (!progressed) break;
   }
   return out;
 }

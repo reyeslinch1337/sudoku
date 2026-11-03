@@ -17,14 +17,20 @@
 
 ## Как обновить банк задач
 
-Банк состоит из трёх уровней по 167 задач (спек `docs/superpowers/specs/2026-10-10-difficulty-levels-design.md`).
+Банк состоит из трёх уровней, квота уровня 367 задач (спеки `docs/superpowers/specs/2026-10-10-difficulty-levels-design.md`
+и `docs/superpowers/specs/2026-11-03-bank-expansion-and-greeting-design.md`).
 
 1. Уровень 9: `npm run generate -- --seed N --out FILE` (состояние в `.generate-state/`, прерванный запуск продолжается).
 2. Скачать `data.zip` из https://github.com/t-dillon/tdoku и распаковать (в репозиторий не класть).
 3. `npm run import-collections -- --data DIR --bank9 FILE` собирает `src/data/puzzles.json` (уровни 10 и 11+ из коллекций).
 4. `npm run verify-bank`, затем закоммитить `src/data/puzzles.json`. Источники описаны в `src/data/NOTICE.md`.
 
-Статистика игроков привязана к строке задачи, поэтому смена банка её не ломает.
+Дополнение банка без потери прогресса игроков: старые задачи не удалять, а добавлять новые:
+`npm run import-collections -- --data DIR --bank9 FILE --base src/data/puzzles.json --add N --seed S`
+(новый seed для каждого дополнения). Статистика игроков привязана к строке задачи.
+
+Поздравление по ссылке: `npm run greeting-link -- "текст"` (`\n` для перевода строки) печатает ссылку;
+текст хранится только в ссылке.
 
 Иконки: исходник `public/icon.svg`, PNG пересобираются командой `npm run icons`.
 
