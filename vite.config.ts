@@ -17,8 +17,8 @@ export default defineConfig({
         scope: '/sudoku/',
         display: 'standalone',
         orientation: 'any',
-        background_color: '#1f2a44',
-        theme_color: '#1f2a44',
+        background_color: '#6b1530',
+        theme_color: '#6b1530',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
