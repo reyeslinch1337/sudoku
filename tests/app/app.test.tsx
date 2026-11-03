@@ -25,9 +25,15 @@ function memoryStore(): KeyValueStore {
   };
 }
 
-function setup(opts: { storage?: KeyValueStore; language?: string } = {}) {
+function setup(opts: { storage?: KeyValueStore; language?: string; greeting?: string } = {}) {
   const storage = opts.storage ?? memoryStore();
-  const store = createStore({ bank, storage, language: opts.language ?? 'en-US', random: () => 0 });
+  const store = createStore({
+    bank,
+    storage,
+    language: opts.language ?? 'en-US',
+    random: () => 0,
+    greeting: opts.greeting,
+  });
   const view = render(<App store={store} />);
   return { store, storage, ...view };
 }
@@ -152,5 +158,20 @@ describe('app', () => {
     await screen.findByText('No logical hint is available for this puzzle');
     expect(store.game.value.hints).toBe(0);
     expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
+  });
+
+  it('shows a greeting from the link and closes it', () => {
+    const { store } = setup({ greeting: 'To the best\nLegend' });
+    const dialog = screen.getByRole('dialog', { name: 'To the best' });
+    expect(dialog.textContent).toContain('Legend');
+    expect(dialog.querySelectorAll('.confetti').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Thank you' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(store.overlay.value).toBe('none');
+  });
+
+  it('shows no greeting without a link', () => {
+    setup();
+    expect(document.querySelector('.greeting-card')).toBeNull();
   });
 });

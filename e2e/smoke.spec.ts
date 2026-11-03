@@ -67,3 +67,16 @@ test('starts a new game on level 11+', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.rating')).toHaveText('11+');
 });
+
+test('a greeting link shows the card and cleans the address', async ({ page }) => {
+  const g = Buffer.from('Первая строка\nЛегенда', 'utf8').toString('base64url');
+  await page.goto(`./?g=${g}`);
+  const card = page.locator('.greeting-card');
+  await expect(card).toContainText('Легенда');
+  expect(page.url()).not.toContain('g=');
+  await card.locator('.btn').click();
+  await expect(card).toHaveCount(0);
+  await expect(page.locator('.cell')).toHaveCount(81);
+  await page.reload();
+  await expect(page.locator('.greeting-card')).toHaveCount(0);
+});
