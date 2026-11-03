@@ -873,3 +873,29 @@ textarea {
     animation: none;
   }
 }
+
+.device-code {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+}
+
+.device-code .field-label {
+  grid-column: 1;
+}
+
+.device-code .code {
+  grid-column: 1;
+  font-family: ui-monospace, monospace;
+  font-size: 20px;
+  letter-spacing: 1px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.device-code .btn {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}

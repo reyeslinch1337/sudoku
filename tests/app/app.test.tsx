@@ -174,4 +174,27 @@ describe('app', () => {
     setup();
     expect(document.querySelector('.greeting-card')).toBeNull();
   });
+
+  it('creates a device code once and shows it in settings', () => {
+    const { store, storage } = setup();
+    const code = store.settings.value.deviceCode!;
+    expect(code).toMatch(/^[2-9A-HJKMNP-Z]{8}$/);
+    cleanup();
+    const again = setup({ storage });
+    expect(again.store.settings.value.deviceCode).toBe(code);
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByTestId('device-code').textContent).toBe(
+      `${code.slice(0, 4)}-${code.slice(4)}`,
+    );
+  });
+
+  it('shows an addressed message only when no other sheet is open', async () => {
+    const { store } = setup();
+    store.overlay.value = 'menu';
+    expect(store.showMessage('Hello')).toBe(false);
+    store.overlay.value = 'none';
+    expect(store.showMessage('Hello')).toBe(true);
+    expect(await screen.findByRole('dialog', { name: 'Hello' })).toBeTruthy();
+  });
 });

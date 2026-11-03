@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { Level } from '../../engine/generator';
 import { ratingLabel } from '../../game/pick';
+import { formatCode } from '../messages';
 import {
   LEVEL_NAMES,
   type Summary,
@@ -242,6 +243,27 @@ export function Settings({ store }: { store: Store }) {
         )}
       </div>
       <p class="sources">{t.sources}</p>
+      {store.settings.value.deviceCode && (
+        <div class="device-code">
+          <span class="field-label">{t.deviceCode}</span>
+          <span class="code" data-testid="device-code">
+            {formatCode(store.settings.value.deviceCode)}
+          </span>
+          <button
+            type="button"
+            class="btn"
+            onClick={() => {
+              const code = formatCode(store.settings.value.deviceCode!);
+              navigator.clipboard
+                ?.writeText(code)
+                .then(() => store.showToast(t.codeCopied))
+                .catch(() => store.showToast(code));
+            }}
+          >
+            {t.copy}
+          </button>
+        </div>
+      )}
       <button type="button" class="btn ghost" onClick={() => (store.overlay.value = 'none')}>
         {t.close}
       </button>

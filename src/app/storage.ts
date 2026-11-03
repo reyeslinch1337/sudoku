@@ -24,6 +24,8 @@ export interface Settings {
   installTipShown: boolean;
   /** Level chosen for the last new game. */
   level: Level;
+  /** Random code that addresses messages to this device; created on first launch. */
+  deviceCode?: string;
 }
 
 const isLevel = (x: unknown): x is Level => x === 9 || x === 10 || x === 11;
@@ -155,6 +157,10 @@ export function loadSettings(store: KeyValueStore, language?: string): Settings 
     lang: x?.lang === 'ru' || x?.lang === 'en' ? x.lang : defaultLang(language),
     installTipShown: x?.installTipShown === true,
     level: isLevel(x?.level) ? x.level : 9,
+    deviceCode:
+      typeof x?.deviceCode === 'string' && /^[2-9A-HJKMNP-Z]{8}$/.test(x.deviceCode)
+        ? x.deviceCode
+        : undefined,
   };
 }
 
