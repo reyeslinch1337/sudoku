@@ -29,11 +29,6 @@
 `npm run import-collections -- --data DIR --bank9 FILE --base src/data/puzzles.json --add N --seed S`
 (новый seed для каждого дополнения). Статистика игроков привязана к строке задачи.
 
-Поздравление по ссылке: `npm run greeting-link -- "текст"` (`\n` для перевода строки) печатает ссылку;
-текст хранится только в ссылке.
-
-Иконки: исходник `public/icon.svg`, PNG пересобираются командой `npm run icons`.
-
 ## Сообщения игрокам
 
 - По ссылке (откроется в Safari): `npm run greeting-link -- "текст"` (`\n` для перевода строки);
