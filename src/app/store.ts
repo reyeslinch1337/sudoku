@@ -10,6 +10,7 @@ import { pickPuzzle } from '../game/pick';
 import { type SolveRecord, solvedIds } from '../game/stats';
 import { type HintProvider, directHints } from './hintClient';
 import { DICTS } from './i18n';
+import { newDeviceCode } from './messages';
 import {
   type KeyValueStore,
   type Lang,
@@ -55,6 +56,10 @@ export function createStore(deps: StoreDeps) {
   const now = deps.now ?? (() => new Date());
 
   const settings = signal(loadSettings(deps.storage, deps.language));
+  if (!settings.value.deviceCode) {
+    settings.value = { ...settings.value, deviceCode: newDeviceCode() };
+    saveSettings(deps.storage, settings.value);
+  }
   const stats = signal<SolveRecord[]>(loadStats(deps.storage));
 
   const freshGame = (level: Level): GameState =>
@@ -212,6 +217,16 @@ export function createStore(deps: StoreDeps) {
     persist();
   }
 
+  /** Shows an addressed message over the game; false if another sheet is open. */
+  function showMessage(text: string): boolean {
+    if (overlay.value !== 'none' && overlay.value !== 'greeting') return false;
+    batch(() => {
+      greeting.value = text;
+      overlay.value = 'greeting';
+    });
+    return true;
+  }
+
   function closeGreeting() {
     batch(() => {
       greeting.value = null;
@@ -262,6 +277,7 @@ export function createStore(deps: StoreDeps) {
     update,
     greeting,
     closeGreeting,
+    showMessage,
     t,
     dispatch,
     inputDigit,

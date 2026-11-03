@@ -80,3 +80,23 @@ test('a greeting link shows the card and cleans the address', async ({ page }) =
   await page.reload();
   await expect(page.locator('.greeting-card')).toHaveCount(0);
 });
+
+test('a message addressed to this device shows at launch', async ({ page }) => {
+  const { encryptMessage } = await import('../src/app/messages');
+  const entry = await encryptMessage('K7Q2-MX4P', 'e2e', 'Для этого устройства', true);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'xsudoku.v1.settings',
+      JSON.stringify({ lang: 'ru', installTipShown: true, level: 9, deviceCode: 'K7Q2MX4P' }),
+    );
+  });
+  await page.route('**/messages.json', (route) => route.fulfill({ json: { messages: [entry] } }));
+  await page.goto('./');
+  const card = page.locator('.greeting-card');
+  await expect(card).toContainText('Для этого устройства');
+  await card.locator('.btn').click();
+  await expect(card).toHaveCount(0);
+  await page.locator('.header .icon-btn').first().click();
+  await page.locator('.menu-list .btn').nth(2).click();
+  await expect(page.getByTestId('device-code')).toHaveText('K7Q2-MX4P');
+});

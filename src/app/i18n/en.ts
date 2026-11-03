@@ -37,6 +37,9 @@ export const en: Dict = {
   levelWithHints: 'Hints available',
   levelNoHints: 'No hints',
   thanks: 'Thank you',
+  deviceCode: 'Device code',
+  copy: 'Copy',
+  codeCopied: 'Code copied',
   sources:
     'Levels 10 and 11+: The hardest sudokus collection of the enjoysudoku.com forum, tdoku data set (BSD-2).',
   wrongDigit: (cell, d) => `${cell} holds a wrong digit ${d}`,

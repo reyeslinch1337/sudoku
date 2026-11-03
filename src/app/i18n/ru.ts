@@ -37,6 +37,9 @@ export const ru: Dict = {
   levelWithHints: 'Подсказки работают',
   levelNoHints: 'Без подсказок',
   thanks: 'Спасибо',
+  deviceCode: 'Код устройства',
+  copy: 'Скопировать',
+  codeCopied: 'Код скопирован',
   sources:
     'Задачи уровней 10 и 11+: коллекция The hardest sudokus форума enjoysudoku.com, набор данных tdoku (BSD-2).',
   wrongDigit: (cell, d) => `В ${cell} стоит неверная цифра ${d}`,
