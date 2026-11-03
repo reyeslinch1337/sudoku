@@ -4,6 +4,7 @@ import {
   type Bucket,
   type Candidate,
   mutate,
+  pickSpread,
   searchFresh,
   selectBank,
   verifyEntries,
@@ -65,6 +66,20 @@ describe('generator', () => {
     ];
     const bank = selectBank(cands, buckets, 2);
     expect(bank.map((e) => e.p)).toEqual(['a', 'd', 'b', 'c']);
+  });
+
+  it('adds puzzles spread over rating levels, skipping known ones', () => {
+    const found = searchFresh(createRng(11), 40, 3.0);
+    const levels = new Set(found.map((f) => Math.round(f.r * 10)));
+    expect(levels.size).toBeGreaterThan(1);
+    const spread = pickSpread(found, levels.size, new Set());
+    expect(new Set(spread.map((e) => Math.round(e.r! * 10))).size).toBe(levels.size);
+    const seen = new Set([fingerprint(parseDigits(found[0].p))]);
+    const picked = pickSpread(found, found.length, seen);
+    expect(picked.map((e) => e.p)).not.toContain(found[0].p);
+    expect(picked).toHaveLength(found.length - 1);
+    expect(picked.every((e) => e.l === 9 && seen.has(fingerprint(parseDigits(e.p))))).toBe(true);
+    expect(pickSpread(found, 1000, new Set()).length).toBeLessThanOrEqual(found.length);
   });
 
   it('verification catches duplicates and wrong ratings', () => {
